@@ -1,4 +1,14 @@
-# Trabalho-redes-neurais
+## 👥 Equipe
+
+| Nome | E-mail |
+|------|---------|
+| Anna Luisa Antony Afonso | anna.antony@icomp.ufam.edu.br |
+| Beatriz Quaresma Athaide | beatriz.quaresma@icomp.ufam.edu.br |
+| Elaine de Castro Freire | elaine.freire@icomp.ufam.edu.br |
+| Manuela Figueira Batista | manuela.batista@icomp.ufam.edu.br |
+| Raíssa Clara Teixeira Brasil | raissa.brasil@icomp.ufam.edu.br |
+| Ruthelene Rodrigues Farias | ruthelene.farias@icomp.ufam.edu.br |
+
 # 🫀 Classificação de Doença Cardíaca com Redes Neurais
 
 
