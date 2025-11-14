@@ -1,3 +1,7 @@
+# Trabalho de Redes Neurais
+
+Este repositório contém o projeto **"Classificação de Doenças Cardíacas"**, desenvolvido como parte das atividades acadêmicas da disciplina de Fundamentos de Inteligência Artificial no Instituto de Computação da Universidade Federal do Amazonas (IComp/UFAM).
+
 ## 👥 Equipe
 
 | Nome | E-mail |
@@ -9,10 +13,10 @@
 | Raíssa Clara Teixeira Brasil | raissa.brasil@icomp.ufam.edu.br |
 | Ruthelene Rodrigues Farias | ruthelene.farias@icomp.ufam.edu.br |
 
-# 🫀 Classificação de Doença Cardíaca com Redes Neurais
+# 🫀 Classificação de Doenças Cardíacas com Redes Neurais
 
 
-Este projeto implementa e avalia um modelo de Rede Neural Sequencial (utilizando Keras) para a classificação binária de doença cardíaca com base em dados clínicos. O objetivo é configurar um ambiente robusto, limpar e pré-processar o dataset Cleveland, treinar um modelo de Deep Learning e otimizá-lo com técnicas de regularização para garantir a capacidade de generalização.
+Este projeto implementa e avalia um modelo de Rede Neural Sequencial (utilizando Keras) para a classificação binária de doença cardíaca com base em dados clínicos. O objetivo é configurar um ambiente robusto, limpar e pré-processar o dataset Cleveland, treinar um modelo de Deep Learning e otimizá-lo com técnicas de regularização para garantir a capacidade de generalização. 
 
 # 1. 🛠️ Inicialização e Carregamento de Dados
 
