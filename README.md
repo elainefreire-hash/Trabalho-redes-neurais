@@ -112,3 +112,14 @@ A padronização com o StandardScaler é de importância crítica para o sucesso
 1. Contribuição Equitativa: Garante que todas as características (variáveis clínicas) contribuam igualmente para o cálculo da perda (loss).
 2. Estabilidade do Treinamento: Sem a normalização, características com escalas muito diferentes (ex: idade vs. colesterol) dominariam as atualizações de peso durante o gradient descent.
 3. Consequência: Isso levaria a um processo de aprendizado lento, instável e, frequentemente, a uma convergência para resultados subótimos ou a um modelo que não generaliza bem. A padronização coloca todas as variáveis em uma escala comparável (média $\approx 0$, desvio padrão $\approx 1$), acelerando a convergência e melhorando a robustez.
+
+## 📄 Licença
+
+Este projeto é de uso acadêmico e foi desenvolvido exclusivamente para fins educacionais no contexto da disciplina.
+
+## 🏛️ Universidade
+
+**Universidade Federal do Amazonas (UFAM)**  
+**Instituto de Computação (IComp)**
+
+✳️ *Manaus, 2025*
