@@ -112,43 +112,54 @@ O processo de *scaling* é aplicado em duas fases obrigatórias para **prevenir 
 1.  **Ajuste e Transformação no Treino:** O *scaler* é **ajustado** e **transformado** (`fit_transform`) **somente** no conjunto de treinamento (`X_train`). Isso significa que a média e o desvio padrão usados para a padronização são derivados **exclusivamente** dos dados de treino.
 2.  **Transformação no Teste:** Os **mesmos parâmetros** (média e desvio padrão) aprendidos no conjunto de treino são, então, usados para **transformar** (`transform`) o conjunto de teste (`X_test`).
 
-Essa separação garante que o modelo de avaliação (`X_test`) permaneça totalmente desconhecido em todas as etapas, simulando com precisão o cenário real onde o modelo encontrará dados novos. A verificação final do `X[0]` no código serve para confirmar que a matriz original **X** não foi modificada pelo `StandardScaler`, mantendo a integridade do *array* principal.
-# 4. 📈 Treinamento e Otimização da Rede Neural
+Essa separação garante que o modelo de avaliação (`X_test`) permaneça totalmente desconhecido em todas as etapas, simulando com precisão o cenário real onde o modelo encontrará dados novos. A verificação final do `X[0]` no código serve para confirmar que a matriz original **X** não foi modificada pelo `StandardScaler`, mantendo a integridade do *array* principal.      
+## 📄 4 - Treinamento da Rede Neural
 
-Esta seção engloba o desenvolvimento completo do modelo de Deep Learning, desde a definição de sua arquitetura base até a sua otimização final com técnicas de regularização. O processo é iterativo, focado na análise gráfica de *overfitting* e na melhoria da capacidade de generalização do modelo.
+Esta documentação abrange o desenvolvimento completo do modelo de **Deep Learning**, desde a garantia de um ambiente **reprodutível** até a aplicação de **técnicas avançadas de regularização** e a **análise visual** do desempenho. O objetivo é criar um modelo robusto, com alta capacidade de generalização e evitar o *overfitting*.
 
-### 4.1. Arquitetura Base, Compilação e Inspeção de Entrada
+---
 
-O primeiro bloco de código estabelece o modelo **`Sequential`** inicial para classificação binária. O modelo é projetado com duas camadas ocultas, utilizando a função de ativação **ReLU** (Rectified Linear Unit) para introduzir não-linearidade e facilitar o aprendizado de padrões complexos. As camadas possuem **16 e 8 neurônios**, respectivamente. Uma camada de **`Dropout`** com taxa de **0.2** é estrategicamente posicionada após a primeira camada oculta. Esta técnica de regularização desativa 20% dos neurônios de forma aleatória durante cada passo de treinamento, reduzindo a co-adaptação e prevenindo o *overfitting* prematuro. A camada de saída é finalizada com **1 neurônio** e a função de ativação **Sigmoid**, que comprime a saída para o intervalo $[0, 1]$, fornecendo a probabilidade da classe positiva, crucial para problemas binários.
+### 4.1. Garantia de Reprodutibilidade (*Seeding*) e Preparação do Alvo
 
-A compilação do modelo é realizada utilizando a função de perda **`binary_crossentropy`**, que é o padrão estatístico para problemas de classificação de duas classes. O otimizador **`adam`** é selecionado por sua eficiência em lidar com grandes conjuntos de dados e por seu ajuste adaptativo da taxa de aprendizado. A métrica de desempenho principal é a **`accuracy`**.
+O bloco inicial é essencialmente técnico, focando na **garantia de reprodutibilidade** do experimento. A definição de uma **semente fixa (`SEED = 42`)** e sua aplicação sistemática nos geradores de números pseudo-aleatórios do **Python (`random`)**, **NumPy (`np.random`)** e **TensorFlow (`tf.random`)** asseguram que todas as execuções subsequentes do código, incluindo a inicialização dos pesos da rede e a sequência de *dropout*, resultarão nos mesmos valores. Isso permite a comparação consistente dos resultados e a validação do processo de otimização.
 
-A seguir, a inspeção rápida de **`X_train[0]`** confirma a qualidade da entrada para a Rede Neural. Uma vez que o `X_train` foi previamente padronizado usando o `StandardScaler`, esta visualização serve como uma validação de que os valores das características estão **corretamente escalonados** (média próxima a zero e desvio padrão unitário). Este escalonamento é um requisito fundamental para Redes Neurais, pois garante que nenhuma *feature* com magnitude maior domine o cálculo da distância durante o treinamento.
+O bloco seguinte prepara a variável alvo (`y`) para o formato **binário estrito**. Cópias dos rótulos de treino (`y_train`) e teste (`y_test`) são criadas e, em seguida, todos os valores **maiores que zero** são explicitamente convertidos para **1** (`Doente`), enquanto a ausência de doença permanece **0** (`Saudável`). Esta conversão é **fundamental** para a utilização da função de perda **`binary_crossentropy`**, que exige rótulos de classe estritamente 0 ou 1. A impressão dos primeiros 20 elementos de `Y_train_binary` confirma a **integridade** desta conversão.
 
-### 4.2. Reforço da Binarização e Definição da Arquitetura Aprimorada
+---
 
-O código em seguida define uma nova arquitetura de rede neural, ligeiramente modificada, introduzindo uma **terceira camada oculta de 4 neurônios**. A nova estrutura é $13 \to 16 \to 8 \to 4 \to 1$. A inclusão desta camada adicional representa uma tentativa deliberada de aumentar a profundidade da rede, capacitando-a a capturar representações hierárquicas e não-lineares mais complexas dos dados. O modelo é compilado com as mesmas configurações robustas de perda (`binary_crossentropy`), otimizador (`adam`) e métrica (`accuracy`).
+### 4.2. Definição da Arquitetura Otimizada (Regularização Reforçada)
 
-Um bloco separado é dedicado ao **reforço e confirmação do formato de rótulos binários**. Embora os dados originais pudessem ter mais de dois valores (o que é comum em alguns *datasets* de saúde, como 0, 1, 2, 3, 4), para esta classificação binária específica, o código garante que **todos os casos de doença sejam estritamente rotulados como 1**, enquanto a ausência é 0. Esta redefinição é fundamental para garantir a compatibilidade com a função de perda `binary_crossentropy`. A impressão dos primeiros 20 elementos de **`Y_train_binary`** confirma que o *array* de rótulos está no formato estritamente binário (0 ou 1) exigido.
+O código define uma função construtora para a **Rede Neural Sequencial Otimizada** (`create_binary_model_tuned`), com um foco explícito no combate ao *overfitting* através de regularização avançada. A arquitetura é construída com três camadas ocultas, introduzindo maior profundidade e complexidade para a rede:
 
-### 4.3. Treinamento e Diagnóstico de Overfitting
+* **Camadas Ocultas:** São três camadas (`Dense`) com **16, 8 e 4 neurônios** respectivamente, todas utilizando a função de ativação **ReLU** (Rectified Linear Unit), ideal para camadas intermediárias. O `input_shape=(13,)` confirma o número de características de entrada após o pré-processamento.
+* **Regularização L2 ($\ell_2$):** Um termo de penalidade $\ell_2(0.001)$ é aplicado aos *kernels* (pesos) de cada camada densa (`kernel_regularizer`). Esta técnica força os pesos a serem menores e mais esparsos, **mitigando o *overfitting*** ao simplificar o modelo.
+* **Dropout Reforçado:** Uma alta taxa de **`Dropout(0.25)`** é aplicada entre *cada* camada densa. Este valor elevado aumenta a desativação aleatória de 25% dos neurônios durante o treinamento, o que impede a co-adaptação e reforça a generalização do modelo.
+* **Compilação e Otimizador:** O modelo é compilado com a perda **`binary_crossentropy`** e o otimizador **Adam** configurado com um **`learning_rate` baixo (0.0005)**. Esta taxa de aprendizado reduzida permite um ajuste mais fino e estável dos pesos, otimizando a convergência.
 
-Com o alvo binário redefinido, o modelo é treinado. O método **`model.fit`** executa o ajuste do modelo utilizando `X_train` e `Y_train_binary` por **50 épocas** com um **`batch_size` de 10**. O uso do **`validation_data`** (o conjunto de teste, `X_test` e `Y_test_binary`) é um procedimento padrão e **essencial** para o monitoramento em tempo real do desempenho e, principalmente, para a detecção de *overfitting* durante o aprendizado. Os resultados detalhados de perda e acurácia por época são armazenados no objeto **`history`**.
+O **`binary_model.summary()`** impresso no final do bloco fornece uma verificação da arquitetura, incluindo a contagem de parâmetros treináveis. 
 
-Os blocos subsequentes de código plotam as curvas de desempenho:
+---
 
-1.  **Curva de Acurácia:** Este gráfico compara a acurácia no **conjunto de treinamento** (`train`) com a acurácia no **conjunto de validação/teste** (`test` ou `val_accuracy`). A análise desta curva é fundamental para entender a estabilidade e a capacidade de generalização do modelo. Se a acurácia de treino continuar a subir, enquanto a acurácia de teste estagnar ou, pior, começar a diminuir, isso é um **indicativo claro de *overfitting***. 
-2.  **Curva de Perda (*Loss*):** Este gráfico compara a perda de treino com a perda de validação (`val_loss`). A perda deve idealmente diminuir para ambos os conjuntos ao longo das épocas. Se a perda de treinamento continuar a diminuir acentuadamente, mas a perda de validação começar a **aumentar após um certo ponto**, isso é a **evidência mais forte de *overfitting***, indicando que o modelo está começando a memorizar o ruído nos dados de treinamento em detrimento da generalização.
+### 4.3. Treinamento Controlado e *Early Stopping*
 
-### 4.4. Otimização Avançada com Regularização L2
+O treinamento do modelo é realizado sob um rigoroso controle através do *callback* **`EarlyStopping`**. Esta técnica é fundamental para **evitar o *overfitting***, parando o treinamento no ponto de máxima generalização.
 
-Para mitigar o *overfitting* diagnosticado, o código define uma nova arquitetura otimizada, encapsulada na função **`create_binary_model`**. Este modelo incorpora técnicas de regularização mais avançadas:
+* **Métrica Monitorada:** O *Early Stopping* monitora a **perda de validação (`val_loss`)**, que é a métrica mais sensível para detectar o início do *overfitting*.
+* **Paciência (`patience=10`):** O treinamento será interrompido se a perda de validação não apresentar melhora após **10 épocas consecutivas**.
+* **Restauração de Pesos:** O parâmetro **`restore_best_weights=True`** garante que, mesmo após a interrupção, o modelo retorne e utilize os pesos da época que resultou no **melhor desempenho de validação**, e não os pesos da última época, que já podem ter sofrido *overfitting* leve.
 
-* **Regularização L2 (*Weight Decay*):** A regularização L2 (`regularizers.l2(0.001)`) é introduzida nas camadas densas. Esta técnica penaliza pesos sinápticos grandes, forçando o modelo a ser mais simples, mais suave e a depender de um conjunto mais amplo de características, **reduzindo significativamente a variância e o *overfitting***.
-* **Dropout Reforçado:** O *dropout* é ligeiramente aumentado de 0.2 para **0.25** nas duas primeiras camadas, intensificando a desativação aleatória dos neurônios.
-* **Ajuste Fino do Otimizador:** O *learning rate* do otimizador Adam é explicitamente definido como **0.001**, oferecendo um controle mais preciso sobre a velocidade de convergência do modelo. A função é encapsulada para facilitar a reexecução e garantir a reprodutibilidade.
+O modelo (`binary_model`) é treinado por no máximo **50 épocas** com um **`batch_size` de 32**. O uso do `validation_data` (conjunto de teste) junto ao `EarlyStopping` cria um processo de treinamento eficiente e robusto.
 
-O modelo otimizado (`binary_model`) é treinado novamente com os mesmos parâmetros (50 épocas, *batch size* 10) e é continuamente monitorado com o conjunto de teste. A expectativa é que este modelo apresente uma diferença menor entre as métricas de treinamento e validação, indicando **melhor capacidade de generalização**.
+---
+
+### 4.4. Análise Visual de Convergência e Generalização
+
+O bloco final gera uma figura com dois gráficos de linha lado a lado para visualizar o desempenho do modelo, utilizando o histórico (`history`) registrado durante o treinamento:
+
+1.  **Acurácia do Modelo:** Compara a acurácia no **conjunto de treinamento** com a acurácia no **conjunto de validação**.
+2.  **Perda (*Loss*) do Modelo:** Compara a perda no **conjunto de treinamento** com a perda no **conjunto de validação**.
+
+A **análise visual** destas curvas é o resultado final e a validação das otimizações. Uma **distância pequena (gap)** entre as curvas de treino e validação é a confirmação de que as técnicas de regularização (L2 e Dropout) foram eficazes. A interrupção precoce das curvas, se o *Early Stopping* foi acionado, confirma que o modelo parou antes de entrar em *overfitting* severo, resultando em um modelo **estável e com alta capacidade de generalização**. 
 
 ### 4.5. Avaliação Final da Robustez
 
