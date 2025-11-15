@@ -94,15 +94,15 @@ A geração de **histogramas** (`data.hist()`) é utilizada para visualizar a di
 
 Este bloco de código é o ponto de transição crucial entre a Análise Exploratória de Dados (EDA) e a fase de Modelagem. Ele cobre as etapas essenciais de **estruturação, divisão e escalonamento** das variáveis, garantindo que o *dataset* esteja no formato ideal para o treinamento e a avaliação dos algoritmos de Machine Learning.
 
-### 1. Separação de Variáveis e Conversão para NumPy
+### 3.1. Separação de Variáveis e Conversão para NumPy
 
 A primeira ação do código é estabelecer o problema de classificação através da separação formal das variáveis. A coluna **`target`** é isolada para formar a variável **y** (o rótulo, ou o que deve ser previsto), enquanto todas as demais colunas do DataFrame, que representam as características clínicas, são agrupadas na matriz **X** (os preditores). O código, em seguida, realiza a conversão imediata de **X** e **y** para **NumPy Arrays**. Essa conversão é um requisito técnico fundamental, pois o NumPy é o formato de matriz de alto desempenho exigido por praticamente todas as bibliotecas de Machine Learning, como Scikit-learn e Keras, otimizando o consumo de memória e a velocidade dos cálculos. A inspeção inicial de `X[0]` confirma que o processo de separação ocorreu com sucesso e que os dados numéricos estão estruturados corretamente.
 
-### 2. Divisão Estratificada dos Dados (*Train-Test Split*)
+### 3.2. Divisão Estratificada dos Dados (*Train-Test Split*)
 
 A próxima etapa é a divisão dos dados em conjuntos de **treinamento (`X_train`, `y_train`)** e **teste (`X_test`, `y_test`)**. O padrão utilizado é de **80%** dos dados para treinamento e **20%** para teste (`test_size=0.2`). Esta separação é vital para que o modelo seja treinado em uma porção dos dados e avaliado em uma porção **inédita**, fornecendo uma estimativa imparcial de seu desempenho em novos dados. O uso do parâmetro **`stratify=y` é absolutamente crítico** neste contexto de classificação. Ele assegura que a **proporção da classe alvo** (pacientes com e sem a doença cardíaca) seja **mantida de forma idêntica** nos subconjuntos de treino e teste.  Sem a estratificação, o conjunto de teste poderia, por acaso, conter uma proporção desequilibrada das classes, resultando em uma avaliação de desempenho irrealista ou tendenciosa.
 
-### 3. Padronização de Características (*Standard Scaling*) e Prevenção de *Data Leakage*
+### 3.3. Padronização de Características (*Standard Scaling*) e Prevenção de *Data Leakage*
 
 A etapa final e mais sofisticada de pré-processamento é a **padronização** das características (`StandardScaler`). Este método transforma os dados de forma que cada característica tenha uma **média próxima de zero e um desvio padrão próximo de um**. Isso é essencial para algoritmos que calculam distâncias entre pontos (como k-Nearest Neighbors, KNN) ou para modelos baseados em otimização por gradiente (como Redes Neurais), pois impede que *features* com escalas naturalmente maiores (como a idade) dominem o processo de aprendizado.
 
@@ -116,13 +116,9 @@ Essa separação garante que o modelo de avaliação (`X_test`) permaneça total
 
 Esta documentação abrange o desenvolvimento completo do modelo de **Deep Learning**, desde a garantia de um ambiente **reprodutível** até a aplicação de **técnicas avançadas de regularização** e a **análise visual** do desempenho. O objetivo é criar um modelo robusto, com alta capacidade de generalização e evitar o *overfitting*.
 
----
-
 ### 4.1. Preparação dos Dados
 
 O processo de preparação dos dados é fundamental para o sucesso do modelo de classificação binária. Inicialmente, são criadas cópias dos conjuntos de dados originais (y_train e y_test) para preservar as informações originais e permitir análises futuras. O processo de binarização converte todos os valores maiores que zero, que originalmente representam diferentes níveis ou tipos de doenças cardíacas, para o valor 1, enquanto mantém os valores zero (ausência de doença) inalterados. Esta transformação simplifica o problema de classificação multiclasse original, permitindo que o modelo foque exclusivamente na detecção da presença ou ausência de doença, independentemente de sua gravidade ou tipo específico. A verificação dos primeiros 20 valores após a conversão serve como controle de qualidade, garantindo que a transformação foi aplicada corretamente e que os dados estão no formato esperado para o treinamento do modelo.
-
----
 
 ### 4.2. Arquitetura e Estrutura da Rede Neura
 
@@ -132,8 +128,6 @@ A segunda camada oculta possui 12 neurônios, também com ativação ReLU, e tem
 
 A camada de saída utiliza um único neurônio com função de ativação sigmoid, que mapeia qualquer valor real para o intervalo [0, 1], permitindo interpretação direta como probabilidade de o paciente ter doença cardíaca. Valores próximos a 1 indicam alta probabilidade de doença, enquanto valores próximos a 0 indicam ausência de condição cardíaca. Esta escolha de função de ativação é fundamental para problemas de classificação binária, pois fornece uma saída probabilística que pode ser facilmente interpretada e utilizada para tomada de decisão clínica.
 
----
-
 ### 4.3. Técnicas de Regularização Implementadas
 
 O modelo incorpora três técnicas principais de regularização para prevenir overfitting e melhorar a capacidade de generalização. O dropout, configurado com taxa de 40% em todas as camadas ocultas, funciona desativando aleatoriamente 40% dos neurônios durante cada época de treinamento, forçando a rede a aprender representações mais robustas e redundantes que não dependem exclusivamente de neurônios específicos. Esta técnica é particularmente eficaz em datasets de tamanho moderado, onde o risco de overfitting é maior.
@@ -141,8 +135,6 @@ O modelo incorpora três técnicas principais de regularização para prevenir o
 A regularização L2 (também conhecida como Ridge Regularization) é aplicada aos pesos de todas as camadas ocultas com parâmetro lambda de 0.005. Esta técnica adiciona um termo de penalização proporcional ao quadrado dos pesos na função de perda, incentivando o modelo a manter pesos pequenos e distribuídos, evitando que alguns pesos dominem excessivamente a decisão do modelo. O valor de lambda foi cuidadosamente escolhido para equilibrar a complexidade do modelo com sua capacidade de aprendizado, sendo suficientemente forte para prevenir overfitting mas não tão forte a ponto de prejudicar a capacidade de aprendizado do modelo.
 
 O Early Stopping monitora a perda de validação (val_loss) durante o treinamento e interrompe automaticamente o processo quando não há melhoria por 10 épocas consecutivas (patience=10). Esta técnica é crucial para evitar treinamento excessivo, pois identifica o ponto ideal onde o modelo alcançou sua melhor performance no conjunto de validação antes de começar a se especializar demais nos dados de treinamento. Adicionalmente, o Early Stopping está configurado para restaurar automaticamente os melhores pesos encontrados durante todo o processo de treinamento (restore_best_weights=True), garantindo que o modelo final utilize os parâmetros que produziram a melhor performance de validação.
-
----
 
 ### 4.4. Configuração de Hiperparâmetros e Compilação
 
