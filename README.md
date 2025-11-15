@@ -15,7 +15,6 @@ Este repositório contém o projeto **"Classificação de Doenças Cardíacas"**
 
 # 🫀 Classificação de Doenças Cardíacas com Redes Neurais
 
-
 Este projeto implementa e avalia um modelo de Rede Neural Sequencial (utilizando Keras) para a classificação binária de doença cardíaca com base em dados clínicos. O objetivo é configurar um ambiente robusto, limpar e pré-processar o dataset Cleveland, treinar um modelo de Deep Learning e otimizá-lo com técnicas de regularização para garantir a capacidade de generalização. 
 
 # 1. 🛠️ Inicialização e Carregamento de Dados
@@ -119,54 +118,45 @@ Esta documentação abrange o desenvolvimento completo do modelo de **Deep Learn
 
 ---
 
-### 4.1. Garantia de Reprodutibilidade (*Seeding*) e Preparação do Alvo
+### 4.1. Preparação dos Dados
 
-O bloco inicial é essencialmente técnico, focando na **garantia de reprodutibilidade** do experimento. A definição de uma **semente fixa (`SEED = 42`)** e sua aplicação sistemática nos geradores de números pseudo-aleatórios do **Python (`random`)**, **NumPy (`np.random`)** e **TensorFlow (`tf.random`)** asseguram que todas as execuções subsequentes do código, incluindo a inicialização dos pesos da rede e a sequência de *dropout*, resultarão nos mesmos valores. Isso permite a comparação consistente dos resultados e a validação do processo de otimização.
-
-O bloco seguinte prepara a variável alvo (`y`) para o formato **binário estrito**. Cópias dos rótulos de treino (`y_train`) e teste (`y_test`) são criadas e, em seguida, todos os valores **maiores que zero** são explicitamente convertidos para **1** (`Doente`), enquanto a ausência de doença permanece **0** (`Saudável`). Esta conversão é **fundamental** para a utilização da função de perda **`binary_crossentropy`**, que exige rótulos de classe estritamente 0 ou 1. A impressão dos primeiros 20 elementos de `Y_train_binary` confirma a **integridade** desta conversão.
+O processo de preparação dos dados é fundamental para o sucesso do modelo de classificação binária. Inicialmente, são criadas cópias dos conjuntos de dados originais (y_train e y_test) para preservar as informações originais e permitir análises futuras. O processo de binarização converte todos os valores maiores que zero, que originalmente representam diferentes níveis ou tipos de doenças cardíacas, para o valor 1, enquanto mantém os valores zero (ausência de doença) inalterados. Esta transformação simplifica o problema de classificação multiclasse original, permitindo que o modelo foque exclusivamente na detecção da presença ou ausência de doença, independentemente de sua gravidade ou tipo específico. A verificação dos primeiros 20 valores após a conversão serve como controle de qualidade, garantindo que a transformação foi aplicada corretamente e que os dados estão no formato esperado para o treinamento do modelo.
 
 ---
 
-### 4.2. Definição da Arquitetura Otimizada (Regularização Reforçada)
+### 4.2. Arquitetura e Estrutura da Rede Neura
 
-O código define uma função construtora para a **Rede Neural Sequencial Otimizada** (`create_binary_model_tuned`), com um foco explícito no combate ao *overfitting* através de regularização avançada. A arquitetura é construída com três camadas ocultas, introduzindo maior profundidade e complexidade para a rede:
+A arquitetura do modelo implementa uma rede neural do tipo Feed-Forward Neural Network (FFNN) com estrutura sequencial, composta por uma camada de entrada, três camadas ocultas densas e uma camada de saída. A camada de entrada recebe 13 features que representam os atributos clínicos do paciente, como idade, pressão arterial, níveis de colesterol, entre outros. A primeira camada oculta contém 16 neurônios com função de ativação ReLU (Rectified Linear Unit), sendo responsável pela extração inicial de características de alto nível dos dados de entrada e identificação de padrões nos atributos clínicos. Esta camada utiliza inicialização de pesos normal (distribuição gaussiana), regularização L2 com parâmetro lambda de 0.005 e dropout de 40% para prevenir overfitting.
 
-* **Camadas Ocultas:** São três camadas (`Dense`) com **16, 8 e 4 neurônios** respectivamente, todas utilizando a função de ativação **ReLU** (Rectified Linear Unit), ideal para camadas intermediárias. O `input_shape=(13,)` confirma o número de características de entrada após o pré-processamento.
-* **Regularização L2 ($\ell_2$):** Um termo de penalidade $\ell_2(0.001)$ é aplicado aos *kernels* (pesos) de cada camada densa (`kernel_regularizer`). Esta técnica força os pesos a serem menores e mais esparsos, **mitigando o *overfitting*** ao simplificar o modelo.
-* **Dropout Reforçado:** Uma alta taxa de **`Dropout(0.25)`** é aplicada entre *cada* camada densa. Este valor elevado aumenta a desativação aleatória de 25% dos neurônios durante o treinamento, o que impede a co-adaptação e reforça a generalização do modelo.
-* **Compilação e Otimizador:** O modelo é compilado com a perda **`binary_crossentropy`** e o otimizador **Adam** configurado com um **`learning_rate` baixo (0.0005)**. Esta taxa de aprendizado reduzida permite um ajuste mais fino e estável dos pesos, otimizando a convergência.
+A segunda camada oculta possui 12 neurônios, também com ativação ReLU, e tem como função refinar as características extraídas pela camada anterior, combinando padrões em representações mais abstratas. Mantém as mesmas técnicas de regularização da camada anterior (L2 com lambda=0.005 e dropout de 40%). A terceira camada oculta, uma adição estratégica à arquitetura, contém 8 neurônios com ativação ReLU e é responsável pela consolidação final das características, preparando representações compactas para a decisão de classificação. Esta arquitetura progressivamente decrescente (16 → 12 → 8 neurônios) implementa um padrão de encoder, comprimindo informações em representações cada vez mais abstratas e compactas, o que é particularmente adequado para datasets de tamanho moderado como o utilizado neste projeto.
 
-O **`binary_model.summary()`** impresso no final do bloco fornece uma verificação da arquitetura, incluindo a contagem de parâmetros treináveis. 
+A camada de saída utiliza um único neurônio com função de ativação sigmoid, que mapeia qualquer valor real para o intervalo [0, 1], permitindo interpretação direta como probabilidade de o paciente ter doença cardíaca. Valores próximos a 1 indicam alta probabilidade de doença, enquanto valores próximos a 0 indicam ausência de condição cardíaca. Esta escolha de função de ativação é fundamental para problemas de classificação binária, pois fornece uma saída probabilística que pode ser facilmente interpretada e utilizada para tomada de decisão clínica.
 
 ---
 
-### 4.3. Treinamento Controlado e *Early Stopping*
+### 4.3. Técnicas de Regularização Implementadas
 
-O treinamento do modelo é realizado sob um rigoroso controle através do *callback* **`EarlyStopping`**. Esta técnica é fundamental para **evitar o *overfitting***, parando o treinamento no ponto de máxima generalização.
+O modelo incorpora três técnicas principais de regularização para prevenir overfitting e melhorar a capacidade de generalização. O dropout, configurado com taxa de 40% em todas as camadas ocultas, funciona desativando aleatoriamente 40% dos neurônios durante cada época de treinamento, forçando a rede a aprender representações mais robustas e redundantes que não dependem exclusivamente de neurônios específicos. Esta técnica é particularmente eficaz em datasets de tamanho moderado, onde o risco de overfitting é maior.
 
-* **Métrica Monitorada:** O *Early Stopping* monitora a **perda de validação (`val_loss`)**, que é a métrica mais sensível para detectar o início do *overfitting*.
-* **Paciência (`patience=10`):** O treinamento será interrompido se a perda de validação não apresentar melhora após **10 épocas consecutivas**.
-* **Restauração de Pesos:** O parâmetro **`restore_best_weights=True`** garante que, mesmo após a interrupção, o modelo retorne e utilize os pesos da época que resultou no **melhor desempenho de validação**, e não os pesos da última época, que já podem ter sofrido *overfitting* leve.
+A regularização L2 (também conhecida como Ridge Regularization) é aplicada aos pesos de todas as camadas ocultas com parâmetro lambda de 0.005. Esta técnica adiciona um termo de penalização proporcional ao quadrado dos pesos na função de perda, incentivando o modelo a manter pesos pequenos e distribuídos, evitando que alguns pesos dominem excessivamente a decisão do modelo. O valor de lambda foi cuidadosamente escolhido para equilibrar a complexidade do modelo com sua capacidade de aprendizado, sendo suficientemente forte para prevenir overfitting mas não tão forte a ponto de prejudicar a capacidade de aprendizado do modelo.
 
-O modelo (`binary_model`) é treinado por no máximo **50 épocas** com um **`batch_size` de 32**. O uso do `validation_data` (conjunto de teste) junto ao `EarlyStopping` cria um processo de treinamento eficiente e robusto.
+O Early Stopping monitora a perda de validação (val_loss) durante o treinamento e interrompe automaticamente o processo quando não há melhoria por 10 épocas consecutivas (patience=10). Esta técnica é crucial para evitar treinamento excessivo, pois identifica o ponto ideal onde o modelo alcançou sua melhor performance no conjunto de validação antes de começar a se especializar demais nos dados de treinamento. Adicionalmente, o Early Stopping está configurado para restaurar automaticamente os melhores pesos encontrados durante todo o processo de treinamento (restore_best_weights=True), garantindo que o modelo final utilize os parâmetros que produziram a melhor performance de validação.
 
 ---
 
-### 4.4. Análise Visual de Convergência e Generalização
+### 4.4. Configuração de Hiperparâmetros e Compilação
 
-O bloco final gera uma figura com dois gráficos de linha lado a lado para visualizar o desempenho do modelo, utilizando o histórico (`history`) registrado durante o treinamento:
+O modelo é compilado utilizando a função de perda binary_crossentropy, que é matematicamente ideal para problemas de classificação binária, pois mede a diferença entre as probabilidades previstas e os valores reais através de uma escala logarítmica, penalizando predições incorretas de forma apropriada. O otimizador escolhido é o Adam (Adaptive Moment Estimation), um algoritmo de otimização adaptativa que combina as vantagens dos métodos AdaGrad e RMSprop, ajustando automaticamente as taxas de aprendizado para cada parâmetro da rede. A taxa de aprendizado inicial (learning rate) está configurada em 0.001, um valor conservador que permite convergência estável sem oscilações excessivas na função de perda.
 
-1.  **Acurácia do Modelo:** Compara a acurácia no **conjunto de treinamento** com a acurácia no **conjunto de validação**.
-2.  **Perda (*Loss*) do Modelo:** Compara a perda no **conjunto de treinamento** com a perda no **conjunto de validação**.
+Para monitoramento durante o treinamento, a métrica de acurácia é utilizada, fornecendo uma medida direta e interpretável do percentual de predições corretas. O treinamento é configurado para rodar por até 100 épocas, embora na prática o Early Stopping geralmente interrompa o processo bem antes deste limite. O tamanho do batch foi definido como 16 amostras, significando que o modelo processa 16 exemplos antes de atualizar seus pesos através do algoritmo de backpropagation. Este valor relativamente pequeno de batch size foi escolhido para proporcionar atualizações mais frequentes dos pesos, o que pode ajudar na convergência em datasets menores e adicionar um efeito de regularização natural através do ruído nas estimativas de gradiente.
 
-A **análise visual** destas curvas é o resultado final e a validação das otimizações. Uma **distância pequena (gap)** entre as curvas de treino e validação é a confirmação de que as técnicas de regularização (L2 e Dropout) foram eficazes. A interrupção precoce das curvas, se o *Early Stopping* foi acionado, confirma que o modelo parou antes de entrar em *overfitting* severo, resultando em um modelo **estável e com alta capacidade de generalização**. 
+### 4.5. Pipeline de Treinamento e Processo de Aprendizado
 
-### 4.5. Avaliação Final da Robustez
+O processo de treinamento segue um pipeline estruturado que começa com a preparação e validação dos dados binários, garantindo que os conjuntos de treino e teste estão corretamente formatados. Durante a inicialização do modelo, os pesos são atribuídos aleatoriamente seguindo a distribuição normal especificada, criando um ponto de partida único para cada treinamento. O treinamento iterativo então procede através de múltiplas épocas, onde cada época representa uma passagem completa pelo conjunto de dados de treinamento.
 
-Os blocos finais de código são dedicados à plotagem das curvas de desempenho do modelo otimizado (com L2 e *Dropout*):
+Em cada época, o modelo realiza um forward pass para calcular as predições, seguido pelo cálculo da perda utilizando a função binary_crossentropy. Após calcular a perda, o algoritmo de backpropagation (backward pass) é executado para calcular os gradientes de cada peso em relação à perda, e o otimizador Adam utiliza estes gradientes para atualizar os pesos do modelo. Simultaneamente, o modelo é avaliado no conjunto de validação (X_test, Y_test_binary) para monitorar sua performance em dados não vistos durante o treinamento.
 
-1.  **Curva de Acurácia Otimizada:** A análise visual desta nova curva é essencial para determinar se as técnicas de regularização foram eficazes em suavizar as oscilações e **reduzir a lacuna (*gap*)** entre a acurácia de treino e a acurácia de validação. Uma lacuna menor indica um modelo que generaliza melhor para dados não vistos.
-2.  **Curva de Perda Otimizada:** O objetivo final é observar se a perda de validação **não aumenta drasticamente** após um certo número de épocas, mantendo-se mais próxima da perda de treinamento. Se esta curva for notavelmente mais estável do que a do modelo base, confirma-se que a regularização **mitigou o *overfitting***, resultando em um modelo mais robusto e com maior poder preditivo em cenários reais. 
+O callback de Early Stopping monitora continuamente a perda de validação após cada época. Quando a val_loss não apresenta melhoria por 10 épocas consecutivas, o treinamento é interrompido automaticamente e os melhores pesos são restaurados. Esta abordagem garante que o modelo final representa o ponto ótimo de performance, evitando tanto underfitting (parada prematura) quanto overfitting (treinamento excessivo). Todo o histórico de treinamento, incluindo valores de loss e accuracy para treino e validação em cada época, é armazenado no objeto history para posterior análise e visualização.
 
 # 5. ✅ Avaliação Final do Modelo
 
